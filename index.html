@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CoD4 Demo 3D</title>
+  <meta name="description" content="Call of Duty 4 demo (.dm_1) replay in 2D and 3D - parsed locally in the browser.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23ff8a1f'/%3E%3Cpath d='M4 11l4-6 4 6z' fill='%23111'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/app.css">
+  <!-- three.js r170 from the project's own copy (vendor/three, see vendor/README.md): works offline
+       and on GitHub Pages, and 'three' and its addons always come from the same place. The CDN
+       alternative (the same version, byte-identical files):
+         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+         "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">CoD4</span> Demo 3D</div>
+    <div class="view-toggle seg" id="view-toggle" hidden>
+      <button data-view="2d" class="active" title="Top-down map (V toggles)">2D</button>
+      <button data-view="3d" title="3D map (V toggles)">3D</button>
+    </div>
+    <div class="file-actions">
+      <span id="file-name" class="file-name"></span>
+      <button class="btn" id="details-btn" hidden title="Scoreboard, rounds, chat and events">Match details</button>
+      <button class="btn" id="export-btn" hidden title="Download the parsed demo data as JSON">Export JSON</button>
+      <label class="btn primary" title="Open a .dm_1 demo">
+        <input type="file" id="file-input" accept=".dm_1,.DM_1" hidden>Open demo
+      </label>
+    </div>
+  </header>
+
+  <main id="app">
+    <section id="dropzone" class="dropzone">
+      <div class="dropzone-inner">
+        <div class="drop-icon" aria-hidden="true"></div>
+        <h1>Drop a CoD4 demo here</h1>
+        <p>or <label class="link">choose a file<input type="file" id="file-input-2" accept=".dm_1,.DM_1" hidden></label> (<code>.dm_1</code>, stock CoD4 or CoD4X)</p>
+        <p class="muted">The file is read locally in your browser. Nothing is uploaded.</p>
+      </div>
+    </section>
+
+    <section id="progress" class="progress" hidden>
+      <div class="progress-label" id="progress-label">Parsing…</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </section>
+
+    <section id="error" class="banner banner-error" hidden></section>
+    <section id="warnings" class="banners"></section>
+
+    <section id="viewer" hidden>
+      <div id="overview" class="overview"></div>
+      <div class="workspace">
+        <div class="viewport-col">
+          <div class="toolbar" id="toolbar"></div>
+          <div class="viewport" id="viewport">
+            <div class="map-clock" id="clock">00:00</div>
+            <div class="view-error banner banner-warn" id="view-error" hidden></div>
+          </div>
+        </div>
+        <aside class="sidebar">
+          <div class="map-panel rp" id="teams"></div>
+          <div class="map-panel feed-panel">
+            <h3>Killfeed &amp; bomb</h3>
+            <div class="map-events" id="feed"></div>
+          </div>
+        </aside>
+      </div>
+      <div class="controls" id="controls"></div>
+
+      <div class="details" id="details" hidden>
+        <div class="details-head">
+          <nav class="tabs" id="tabs" role="tablist">
+            <button role="tab" data-tab="scoreboard" class="active">Scoreboard</button>
+            <button role="tab" data-tab="rounds">Round by Round</button>
+            <button role="tab" data-tab="chat">Chat</button>
+            <button role="tab" data-tab="events">Events</button>
+          </nav>
+          <button class="details-close" id="details-close" title="Close (Esc)" aria-label="Close match details">×</button>
+        </div>
+        <div class="details-body">
+          <section class="tab-panel active" id="tab-scoreboard"></section>
+          <section class="tab-panel" id="tab-rounds"></section>
+          <section class="tab-panel" id="tab-chat"></section>
+          <section class="tab-panel" id="tab-events"></section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- demo parser + analysis (classic scripts from cod4-demo, DOM-free, also run inside the worker) -->
+  <script src="js/c4/core/c4.js"></script>
+  <script src="js/c4/parser/tables.js"></script>
+  <script src="js/c4/parser/huffman.js"></script>
+  <script src="js/c4/parser/msg.js"></script>
+  <script src="js/c4/parser/delta.js"></script>
+  <script src="js/c4/parser/demo.js"></script>
+  <script src="js/c4/common/text.js"></script>
+  <script src="js/c4/common/constants.js"></script>
+  <script src="js/c4/common/servercmd.js"></script>
+  <script src="js/c4/common/names.js"></script>
+  <script src="js/c4/common/exportName.js"></script>
+  <script src="js/c4/analysis/weapons.js"></script>
+  <script src="js/c4/analysis/collect.js"></script>
+  <script src="js/c4/analysis/teams.js"></script>
+  <script src="js/c4/analysis/rounds.js"></script>
+  <script src="js/c4/analysis/events.js"></script>
+  <script src="js/c4/analysis/povDamage.js"></script>
+  <script src="js/c4/analysis/sight.js"></script>
+  <script src="js/c4/analysis/ownKills.js"></script>
+  <script src="js/c4/analysis/build.js"></script>
+  <script src="js/c4/analysis/worker.js"></script>
+  <script src="assets/maps/maps.js"></script>
+  <!-- UI building blocks from cod4-demo (tables, 2D renderer, heatmap, video export) -->
+  <script src="js/c4/ui/dom.js"></script>
+  <script src="js/c4/ui/overview.js"></script>
+  <script src="js/c4/ui/scoreboard.js"></script>
+  <script src="js/c4/ui/rounds.js"></script>
+  <script src="js/c4/ui/chat.js"></script>
+  <script src="js/c4/ui/events.js"></script>
+  <script src="js/c4/ui/map/config.js"></script>
+  <script src="js/c4/ui/map/renderer.js"></script>
+  <script src="js/c4/ui/map/heatmap.js"></script>
+  <script src="js/c4/ui/map/heatPanel.js"></script>
+  <script src="js/c4/ui/map/playback.js"></script>
+  <script src="js/c4/ui/map/statsPopup.js"></script>
+  <script src="js/c4/ui/map/mp4mux.js"></script>
+  <script src="js/c4/ui/map/gifenc.js"></script>
+  <script src="js/c4/ui/map/exportVideo.js"></script>
+  <!-- the app: ES modules (shared match model + replay state, 2D and 3D views) -->
+  <script type="module" src="js/app/main.js"></script>
+</body>
+</html>

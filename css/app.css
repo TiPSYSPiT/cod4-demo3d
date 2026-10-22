@@ -1,0 +1,86 @@
+/* cod4-demo3d layout on top of cod4-demo's styles.css: one page, viewport + sidebar,
+ * controls at the bottom, match details as an overlay. */
+body { min-width: 1100px; }
+main { padding: 10px 16px 16px; }
+.topbar { gap: 16px; }
+.topbar .view-toggle { margin-left: 8px; }
+.topbar .view-toggle button { padding: 5px 18px; font-size: 14px; }
+.topbar .file-actions { margin-left: auto; }
+
+/* a loaded demo fills the window below the top bar: overview, workspace (flexible), controls */
+body.loaded main { height: calc(100vh - 53px); min-height: 640px; display: flex; flex-direction: column; }
+body.loaded #viewer { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#viewer { position: relative; }
+.overview { margin-bottom: 8px; flex: none; }
+.workspace { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap: 12px; min-height: 400px; }
+.viewport-col { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.viewport-col .toolbar { margin-bottom: 8px; gap: 8px 14px; }
+.toolbar-shared, .toolbar-view { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.toolbar-view { padding-left: 14px; border-left: 1px solid var(--line-2); }
+.opt-group { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+.viewport { position: relative; flex: 1; min-height: 0; background: #07090c; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.viewport > .map-clock { z-index: 5; left: 10px; right: auto; }
+.view-stage { position: absolute; inset: 0; }
+.view-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.view-stage .map-hint { z-index: 4; }
+.view-error { position: absolute; left: 50%; top: 50px; transform: translateX(-50%); z-index: 6; max-width: 70%; }
+
+.sidebar { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; container: map-side / inline-size; }
+.sidebar .rp { flex: none; max-height: 58%; overflow-y: auto; }
+.sidebar .feed-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.rp-table td.rp-eye-td { width: 18px; padding: 0 2px; }
+.rp-eye { background: none; border: none; color: var(--tc, var(--text)); cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1; }
+.rp-row.off .rp-eye { color: var(--dim); }
+.rp-row.focus { background: rgba(255, 138, 31, 0.16); outline: 1px solid var(--accent); outline-offset: -1px; }
+.rp-row { cursor: pointer; }
+.sidebar .note { font-size: 11.5px; margin: 6px 2px 0; }
+
+.controls { margin-top: 10px; flex: none; flex-wrap: nowrap; }
+.controls .timeline { min-width: 200px; }
+.controls .scope { max-width: 220px; }
+.controls .btn.play { min-width: 52px; font-size: 15px; }
+
+/* match details overlay */
+.details { position: absolute; inset: 0; z-index: 40; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+  display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); }
+.details-head { display: flex; align-items: flex-end; padding: 8px 14px 0; gap: 10px; }
+.details-head .tabs { flex: 1; margin-bottom: 0; }
+.details-close { background: none; border: 1px solid var(--line-2); color: var(--text); border-radius: 6px; width: 32px; height: 30px; font-size: 18px; cursor: pointer; margin-bottom: 6px; }
+.details-close:hover { border-color: var(--accent); }
+.details-body { flex: 1; overflow: auto; padding: 14px; }
+
+/* 3D view */
+.view3d .label-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
+.p3-label { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font: 600 11.5px var(--font); color: #f2f5f8;
+  text-shadow: 0 0 3px #000, 0 0 2px #000; padding-bottom: 4px; }
+.p3-label.stale { color: #9aa4b2; }
+.p3-label.focus { color: var(--accent-2); font-weight: 700; }
+.p3-label .hp { display: inline-block; margin-left: 4px; color: var(--muted); font-weight: 400; }
+.view3d .map-hint { max-width: calc(100% - 330px); }
+.view3d .map-hint.warn { color: var(--warn); border-color: rgba(245, 196, 81, .5); }
+.p3-label.site { font: 800 22px var(--font); color: #ffd27a; text-shadow: 0 0 4px #000, 0 0 2px #000; }
+.view3d canvas { cursor: grab; }
+.cam-hint { position: absolute; right: 10px; bottom: 10px; z-index: 4; background: rgba(11,14,18,.8); border: 1px solid var(--line); color: var(--muted);
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+.toolbar-view select { background: var(--panel); color: var(--text); border: 1px solid var(--line-2); border-radius: 6px; padding: 4px 6px; }
+.toolbar-view .sound-opt input[type=range] { width: 72px; accent-color: var(--accent); }
+.audit-info { position: absolute; left: 50%; top: 44px; transform: translateX(-50%); z-index: 5; background: rgba(11,14,18,.88);
+  border: 1px solid var(--line-2); color: var(--text); padding: 4px 10px; border-radius: 6px; font-size: 12px; max-width: 80%; }
+.audit-info b { color: var(--accent); }
+.player-notice { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 5; background: rgba(11,14,18,.88);
+  border: 1px solid rgba(245, 196, 81, .5); color: var(--warn); padding: 4px 10px; border-radius: 6px; font-size: 12px; max-width: 70%; }
+/* 3D kill feed (js/c4/ui/killfeed.js): top right, newest at the bottom, on a dark row for light maps */
+.kf-overlay { position: absolute; right: 10px; top: 10px; z-index: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+  pointer-events: none; max-width: 60%; }
+.kf-row { display: flex; align-items: center; gap: 5px; padding: 1px 7px; min-height: 19px; border-radius: 3px; background: rgba(8,10,14,.72);
+  font: 600 12px var(--font); white-space: nowrap; text-shadow: 0 0 2px #000; }
+.kf-row .kf-weapon { margin: 0; }
+.kf-row .kf-icon { filter: drop-shadow(0 0 1px rgba(0,0,0,.9)); }
+.kf-row .kf-name { overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.kf-row .kf-note { font-weight: 400; }
+.kf-row .badge { line-height: 13px; padding: 0 5px; font-size: 10.5px; }
+.kf-row .approx { color: var(--muted); font-size: 10px; margin-left: -2px; }
+.kf-row.kf-bomb { color: var(--warn); }
+/* weapon icon over a death marker (3D toolbar: Kill icons) */
+.p3-label.kf-mark { display: flex; align-items: center; gap: 3px; padding: 1px 5px; border-radius: 3px; background: rgba(8,10,14,.6); }
+.p3-label.kf-mark .kf-icon { height: 18px; }
